@@ -1,0 +1,16 @@
+package com.grootan.ems;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.TimeZone;
+
+@SpringBootApplication
+public class EmsApplication {
+
+	public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+		SpringApplication.run(EmsApplication.class, args);
+	}
+
+}

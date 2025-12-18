@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ems-postgres
+    environment:
+      POSTGRES_DB: ems
+      POSTGRES_USER: ems_user
+      POSTGRES_PASSWORD: ems_pass
+    command: ["postgres", "-c", "TimeZone=UTC"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - ems_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ems_user -d ems"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  ems_pgdata:

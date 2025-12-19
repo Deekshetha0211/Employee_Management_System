@@ -3,11 +3,14 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ems?options=-c%20TimeZone%3DUTC
+#    url: jdbc:postgresql://db:5432/ems?options=-c%20TimeZone%3DUTC
+    url: jdbc:postgresql://db:5432/ems
     username: ems_user
     password: ems_pass
     driver-class-name: org.postgresql.Driver
-
+  sql:
+    init:
+      mode: always
   jpa:
     hibernate:
       ddl-auto: none
@@ -16,7 +19,18 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+  data:
+    redis:
+      host: redis
+      port: 6379
 
-  sql:
-    init:
-      mode: always
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+app:
+  jwt:
+    secret: "change-me-to-a-long-random-secret-at-least-32-chars"
+    expiry-minutes: 120

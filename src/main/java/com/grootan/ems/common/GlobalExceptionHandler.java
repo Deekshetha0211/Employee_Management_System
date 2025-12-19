@@ -6,6 +6,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,8 +15,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiError> handleApi(ApiException ex, HttpServletRequest req) {
+        log.warn("API error code={} status={} path={}: {}", ex.getCode(), ex.getStatus(), req.getRequestURI(), ex.getMessage());
         ApiError body = new ApiError(
                 ex.getStatus().value(),
                 ex.getCode(),
@@ -32,6 +37,7 @@ public class GlobalExceptionHandler {
             fields.put(fe.getField(), fe.getDefaultMessage());
         }
 
+        log.warn("Validation failed for path={} errors={}", req.getRequestURI(), fields);
         ApiError body = new ApiError(
                 400,
                 "validation_failed",

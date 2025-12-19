@@ -24,6 +24,9 @@ public class Employee {
     @Column(nullable = false, unique = true, length = 180)
     private String email;
 
+    @Column(name="emp_role",nullable = false)
+    private String empRole;
+
     @Column(name="hire_date", nullable = false)
     private LocalDate hireDate;
 

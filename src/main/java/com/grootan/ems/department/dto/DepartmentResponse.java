@@ -1,7 +1,12 @@
 package com.grootan.ems.department.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.OffsetDateTime;
 
+@Getter
+@Setter
 public class DepartmentResponse {
     private Long id;
     private String code;
@@ -16,10 +21,4 @@ public class DepartmentResponse {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
-
-    public Long getId() { return id; }
-    public String getCode() { return code; }
-    public String getName() { return name; }
-    public OffsetDateTime getCreatedAt() { return createdAt; }
-    public OffsetDateTime getUpdatedAt() { return updatedAt; }
 }

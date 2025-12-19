@@ -112,3 +112,115 @@ mvn test
 - Secrets are stored in `docker-compose.yml` for convenience — for production, use a secrets manager or environment-specific secret store.
 
 ---
+
+## Authentication & Password Reset Architecture
+
+This system implements a secure, enterprise-style authentication and onboarding flow using
+Spring Security (JWT) and BCrypt password hashing.
+
+---
+
+### Core Principles
+
+- Raw passwords are **never stored**
+- All passwords are hashed using **BCrypt**
+- New employees receive a **temporary password**
+- Users are **forced to reset password on first login**
+- Authorization is role-based (`ADMIN`, `HR_MANAGER`, `EMPLOYEE`)
+
+---
+
+### User Identity Model
+
+Authentication data is stored separately from HR data.
+
+**`employees`**
+- HR domain entity (name, department, status, hire date)
+
+**`app_users`**
+- Authentication identity linked to employee
+
+Key fields in `app_users`:
+- `email`
+- `password_hash`
+- `role`
+- `employee_id`
+- `enabled`
+- `must_change_password`
+- `password_changed_at`
+
+---
+
+### Onboarding Flow (Admin / HR)
+
+1. Admin/HR creates an employee via:
+2. System generates a **random temporary password**
+3. Password is hashed using BCrypt
+4. `app_users` record is created with:
+- role = `EMPLOYEE`
+- link to `employee_id`
+- `must_change_password = true`
+5. Temporary password is returned **once** in the response
+
+> Temporary passwords are never persisted in plain text.
+
+---
+
+### Login Flow
+
+1. Employee logs in using:
+2. Credentials are verified using `BCryptPasswordEncoder.matches`
+3. On success, a JWT token is issued
+4. Login response includes:
+- `accessToken`
+- `role`
+- `mustChangePassword` flag
+
+Example response:
+```json
+{
+"accessToken": "<jwt-token>",
+"tokenType": "Bearer",
+"role": "EMPLOYEE",
+"mustChangePassword": true
+}
+```
+
+### Password Reset Flow
+1. Authenticated user calls:
+POST /auth/change-password
+2. Request body: {
+   "currentPassword": "TemporaryPassword",
+   "newPassword": "NewStrongPassword@123"
+   }
+3. Backend: 
+- validates current password 
+- enforces password policy 
+- hashes new password with BCrypt 
+- updates user record:
+  - password_hash 
+  - must_change_password = false 
+  - password_changed_at = now()
+4. User can now access the system normally
+
+### Password Security
+BCrypt provides:
+- per-password random salt 
+- configurable work factor 
+- Same password always produces a different hash 
+- Password verification is done using PasswordEncoder.matches 
+- Password hashes are never reversible
+
+### Authorization Rules
+
+- ADMIN full access 
+- HR, MANAGER manage employees 
+- EMPLOYEE read-only access 
+- Role enforcement is done at API layer via Spring Security
+
+### Design Decisions & Trade-offs
+- Temporary passwords improve onboarding security without email dependencies 
+- First-login reset avoids long-lived weak credentials 
+- JWT provides stateless authentication 
+- No password reset tokens required for first-login flow 
+- Identity (app_users) is decoupled from HR data (employees)
